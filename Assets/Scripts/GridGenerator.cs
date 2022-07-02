@@ -11,6 +11,7 @@ namespace GridTest
         [Header("Options")]
         [SerializeField] [Range(0, 5.0f)] private float _generateTime;
         [SerializeField] [Range(0, 5.0f)] private float _shuffleTime;
+        [SerializeField] private int _lettersLimit;
         [SerializeField] private GridShuffler.ShuffleType _shuffleType;
         [SerializeField] private Transform _createTransform;
         [SerializeField] private Transform _destroyTransform;
@@ -28,19 +29,34 @@ namespace GridTest
         {
             _grid = GetComponent<Grid>();
             _spriteRandomizer = GetComponent<SpriteRandomizer>();
-            _createPoint = _createTransform.position;
-            _destroyPoint = _destroyTransform.position;
+            _createPoint = _createTransform != null ? _createTransform.position : Vector2.zero;
+            _destroyPoint = _destroyTransform != null ? _destroyTransform.position : Vector2.zero;
         }
 
         public void SetResolution(int width, int height)
         {
+            int count = width * height;
+
+            if (count > _lettersLimit)
+            {
+                float scale = Mathf.Sqrt((float)_lettersLimit / count);
+                width = Mathf.FloorToInt(width * scale);
+                height = Mathf.FloorToInt(height * scale);
+            }
+
             _grid.SetResolution(width, height);
             FillGrid();
             MoveLetters(_generateTime);
         }
+        public Vector2Int GetResolution()
+        {
+            return _grid.GetResolution();
+        }
 
         public void ShuffleGrid()
         {
+            if (_letters == null)
+                return;
             GridShuffler.Shuffle(_letters, _shuffleType);
             MoveLetters(_shuffleTime);
         }
@@ -81,6 +97,16 @@ namespace GridTest
                     }
                 }
             }
+        }
+        public void ClearGrid()
+        {
+            if (_letters == null)
+                return;
+            foreach (var letter in _letters)
+            {
+                letter.SetTarget(_destroyPoint, 0, _generateTime, true);
+            }
+            _letters = null;
         }
         public void MoveLetters(float time)
         {

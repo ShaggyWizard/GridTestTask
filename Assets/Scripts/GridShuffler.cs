@@ -26,31 +26,152 @@ namespace GridTest
             switch (type)
             {
                 case ShuffleType.Random:
-                    RandomPoints(letters);
+                    RandomPoints(ref letters);
                     break;
                 case ShuffleType.Vertical:
-                    Vertical(letters);
+                    Vertical(ref letters);
                     break;
                 case ShuffleType.Horizontal:
-                    Horizontal(letters);
+                    Horizontal(ref letters);
                     break;
                 case ShuffleType.Vortex:
-                    Vortex(letters);
+                    Vortex(ref letters);
                     break;
                 case ShuffleType.CrissCross:
-                    CrissCross(letters);
+                    CrissCross(ref letters);
                     break;
                 default:
-                    RandomPoints(letters);
+                    RandomPoints(ref letters);
                     break;
             }
             return letters;
         }
-        private static Stack<Letter> GetRandomStack(Stack<Letter> source)
+
+        private static void RandomPoints(ref Letter[,] letters)
         {
-            return GetRandomStack(new List<Letter>(source));
+            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
+
+            List<Letter> lettersList = new List<Letter>();
+
+            for (int x = 0; x < resolution.x; x++)
+            {
+                for (int y = 0; y < resolution.y; y++)
+                {
+                    lettersList.Add(letters[x, y]);
+                }
+            }
+
+            Stack<Letter> lettersStack = GetShuffledStack(lettersList);
+
+            for (int x = 0; x < resolution.x; x++)
+            {
+                for (int y = 0; y < resolution.y; y++)
+                {
+                    letters[x, y] = lettersStack.Pop();
+                }
+            }
         }
-        private static Stack<Letter> GetRandomStack(List<Letter> list)
+        private static void Vertical(ref Letter[,] letters)
+        {
+            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
+
+            for (int x = 0; x < resolution.x; x++)
+            {
+                List<Letter> lettersList = new List<Letter>();
+
+                for (int y = 0; y < resolution.y; y++)
+                {
+                    lettersList.Add(letters[x, y]);
+                }
+
+                Stack<Letter> letterStack = GetShuffledStack(lettersList);
+
+                for (int y = 0; y < resolution.y; y++)
+                {
+                    letters[x, y] = letterStack.Pop();
+                }
+            }
+        }
+        private static void Horizontal(ref Letter[,] letters)
+        {
+            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
+
+            for (int y = 0; y < resolution.y; y++)
+            {
+                List<Letter> lettersList = new List<Letter>();
+
+                for (int x = 0; x < resolution.x; x++)
+                {
+                    lettersList.Add(letters[x, y]);
+                }
+
+                Stack<Letter> letterStack = GetShuffledStack(lettersList);
+
+                for (int x = 0; x < resolution.x; x++)
+                {
+                    letters[x, y] = letterStack.Pop();
+                }
+            }
+        }
+        private static void Vortex(ref Letter[,] letters)
+        {
+            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
+
+            Stack<Letter>[] randomizedStacks = GetShuffledStacks(letters);
+
+            Stack<Letter>[] finalStacks = CloneStacks(randomizedStacks);
+
+            OverlayStack(ref finalStacks[0], randomizedStacks[2]);
+            OverlayStack(ref finalStacks[6], randomizedStacks[0]);
+            OverlayStack(ref finalStacks[8], randomizedStacks[6]);
+            OverlayStack(ref finalStacks[2], randomizedStacks[8]);
+
+            OverlayStack(ref finalStacks[1], randomizedStacks[5]);
+            OverlayStack(ref finalStacks[3], randomizedStacks[1]);
+            OverlayStack(ref finalStacks[7], randomizedStacks[3]);
+            OverlayStack(ref finalStacks[5], randomizedStacks[7]);
+
+            FillLetters(ref letters, MergeStacks(finalStacks, resolution));
+        }
+        private static void CrissCross(ref Letter[,] letters)
+        {
+            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
+
+            Stack<Letter>[] randomizedStacks = GetShuffledStacks(letters);
+            Stack<Letter>[] finalStack = CloneStacks(randomizedStacks);
+
+            for (int i = 0; i < randomizedStacks.Length; i++)
+            {
+                OverlayStack(ref finalStack[i], randomizedStacks[randomizedStacks.Length - i - 1]);
+            }
+
+            FillLetters(ref letters, MergeStacks(finalStack, resolution));
+        }
+
+
+
+        //Fills letters array with given stack
+        private static void FillLetters(ref Letter[,] letters, Stack<Letter> reverseStack)
+        {
+            if (letters.Length != reverseStack.Count)
+            {
+                Debug.LogError("Sizes don't match");
+                return;
+            }
+
+            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
+
+            for (int x = 0; x < resolution.x; x++)
+            {
+                for (int y = 0; y < resolution.y; y++)
+                {
+                    letters[x, y] = reverseStack.Pop();
+                }
+            }
+        }
+
+        //Shuffles letters in stack
+        private static Stack<Letter> GetShuffledStack(List<Letter> list)
         {
             Stack<Letter> stack = new Stack<Letter>();
 
@@ -71,137 +192,12 @@ namespace GridTest
             return stack;
         }
 
-        private static void RandomPoints(Letter[,] letters)
-        {
-            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
-
-            List<Letter> lettersList = new List<Letter>();
-
-            for (int x = 0; x < resolution.x; x++)
-            {
-                for (int y = 0; y < resolution.y; y++)
-                {
-                    lettersList.Add(letters[x, y]);
-                }
-            }
-
-            Stack<Letter> lettersStack = GetRandomStack(lettersList);
-
-            for (int x = 0; x < resolution.x; x++)
-            {
-                for (int y = 0; y < resolution.y; y++)
-                {
-                    letters[x, y] = lettersStack.Pop();
-                }
-            }
-        }
-        private static void Vertical(Letter[,] letters)
-        {
-            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
-
-            for (int x = 0; x < resolution.x; x++)
-            {
-                List<Letter> lettersList = new List<Letter>();
-
-                for (int y = 0; y < resolution.y; y++)
-                {
-                    lettersList.Add(letters[x, y]);
-                }
-
-                Stack<Letter> letterStack = GetRandomStack(lettersList);
-
-                for (int y = 0; y < resolution.y; y++)
-                {
-                    letters[x, y] = letterStack.Pop();
-                }
-            }
-        }
-        private static void Horizontal(Letter[,] letters)
-        {
-            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
-
-            for (int y = 0; y < resolution.y; y++)
-            {
-                List<Letter> lettersList = new List<Letter>();
-
-                for (int x = 0; x < resolution.x; x++)
-                {
-                    lettersList.Add(letters[x, y]);
-                }
-
-                Stack<Letter> letterStack = GetRandomStack(lettersList);
-
-                for (int x = 0; x < resolution.x; x++)
-                {
-                    letters[x, y] = letterStack.Pop();
-                }
-            }
-        }
-        private static void Vortex(Letter[,] letters)
-        {
-            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
-
-            Stack<Letter>[] randomizedStacks = GetRandomizedStacks(letters);
-
-            Stack<Letter>[] finalStacks = CloneStacks(randomizedStacks);
-
-            OverlayStack(finalStacks[0], randomizedStacks[2]);
-            OverlayStack(finalStacks[6], randomizedStacks[0]);
-            OverlayStack(finalStacks[8], randomizedStacks[6]);
-            OverlayStack(finalStacks[2], randomizedStacks[8]);
-
-            OverlayStack(finalStacks[1], randomizedStacks[5]);
-            OverlayStack(finalStacks[3], randomizedStacks[1]);
-            OverlayStack(finalStacks[7], randomizedStacks[3]);
-            OverlayStack(finalStacks[5], randomizedStacks[7]);
-
-            FillLetters(letters, MergeStacks(finalStacks, resolution));
-        }
-
-        private static void CrissCross(Letter[,] letters)
-        {
-            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
-
-            Stack<Letter>[] randomizedStacks = GetRandomizedStacks(letters);
-            Stack<Letter>[] finalStack = CloneStacks(randomizedStacks);
-
-            for (int i = 0; i < randomizedStacks.Length; i++)
-            {
-                OverlayStack(finalStack[i], randomizedStacks[randomizedStacks.Length - i - 1]);
-            }
-
-            FillLetters(letters, MergeStacks(finalStack, resolution));
-        }
-
-        private static Stack<Letter>[] CloneStacks(Stack<Letter>[] randomizedStacks)
-        {
-            Stack<Letter>[] clone = new Stack<Letter>[randomizedStacks.Length];
-            for (int i = 0; i < randomizedStacks.Length; i++)
-            {
-                clone[i] = new Stack<Letter>(new Stack<Letter>(randomizedStacks[i]));
-            }
-            return clone;
-        }
-
-        private static void OverlayStack(Stack<Letter> target, Stack<Letter> source)
-        {
-            int range = Mathf.Min(target.Count, source.Count);
-            for (int i = 0; i < range; i++)
-            {
-                target.Pop();
-            }
-            for (int i = 0; i < range; i++)
-            {
-                target.Push(source.Pop());
-            }
-        }
-
-
-        private static Stack<Letter>[] GetRandomizedStacks(Letter[,] letters)
+        //Divides array into 9 stacks and shuffles letters in them
+        private static Stack<Letter>[] GetShuffledStacks(Letter[,] letters)
         {
             Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
             Vector2Int half = resolution / 2;
-            Vector2Int center = new Vector2Int(resolution.x % 2 == 0 ? -1 : half.x, 
+            Vector2Int center = new Vector2Int(resolution.x % 2 == 0 ? -1 : half.x,
                                                resolution.y % 2 == 0 ? -1 : half.y);
 
             int stacksCount = 9;
@@ -234,18 +230,40 @@ namespace GridTest
 
             for (int i = 0; i < stacksCount; i++)
             {
-                stacks[i] = GetRandomStack(stacks[i]);
+                stacks[i] = GetShuffledStack(new List<Letter>(stacks[i]));
             }
 
             return stacks;
         }
+
+        private static Stack<Letter>[] CloneStacks(Stack<Letter>[] randomizedStacks)
+        {
+            Stack<Letter>[] clone = new Stack<Letter>[randomizedStacks.Length];
+            for (int i = 0; i < randomizedStacks.Length; i++)
+            {
+                clone[i] = new Stack<Letter>(new Stack<Letter>(randomizedStacks[i]));
+            }
+            return clone;
+        }
+
+        private static void OverlayStack(ref Stack<Letter> target, Stack<Letter> source)
+        {
+            int range = Mathf.Min(target.Count, source.Count);
+            for (int i = 0; i < range; i++)
+            {
+                target.Pop();
+            }
+            for (int i = 0; i < range; i++)
+            {
+                target.Push(source.Pop());
+            }
+        }
+
         private static Stack<Letter> MergeStacks(Stack<Letter>[] stacks, Vector2Int resolution)
         {
             Vector2Int half = resolution / 2;
             Vector2Int center = new Vector2Int(resolution.x % 2 == 0 ? -1 : half.x,
                                                resolution.y % 2 == 0 ? -1 : half.y);
-
-            int equalizer = Mathf.Min(half.x, half.y);
 
             Stack<Letter> stack = new Stack<Letter>();
 
@@ -266,18 +284,6 @@ namespace GridTest
                 }
             }
             return stack;
-        }
-        private static void FillLetters(Letter[,] letters, Stack<Letter> reverseStack)
-        {
-            Vector2Int resolution = new Vector2Int(letters.GetLength(0), letters.GetLength(1));
-
-            for (int x = 0; x < resolution.x; x++)
-            {
-                for (int y = 0; y < resolution.y; y++)
-                {
-                    letters[x, y] = reverseStack.Pop();
-                }
-            }
         }
     }
 }

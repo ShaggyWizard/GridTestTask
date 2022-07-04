@@ -18,19 +18,18 @@ namespace GridTest
         private float _timeStamp;
         private bool _destroyInProgress;
 
+        private Color _defaultColor = Color.black;
+
         private void OnEnable()
         {
             _spriteRenderer = GetComponent<SpriteRenderer>();
+            _defaultColor = Color.black;
         }
 
-        public void SetSprite(Sprite sprite)
+        public void SetSprite(Sprite sprite, Color? color = null)
         {
-            SetSprite(sprite, Color.black);
-        }
-        public void SetSprite(Sprite sprite, Color color)
-        {
+            _spriteRenderer.color = color ?? Color.black;
             _spriteRenderer.sprite = sprite;
-            _spriteRenderer.color = color;
         }
 
         private void Update()

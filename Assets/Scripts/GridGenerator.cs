@@ -95,7 +95,7 @@ namespace GridTest
                     {
                         Letter letter = _letters[x, y] = Instantiate(_letterPrefab, transform);
                         var sprite = _spriteRandomizer.GetRandomSprite();
-                        letter.SetSprite(sprite, new Color(Random.Range(0.3f, 0.9f), Random.Range(0.3f, 0.9f), Random.Range(0.3f, 0.9f)));
+                        letter.SetSprite(sprite, Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
                         letter.gameObject.name = sprite.name;
                         letter.transform.position = _createPoint;
                     }

@@ -32,6 +32,10 @@ namespace GridTest
             _createPoint = _createTransform != null ? _createTransform.position : Vector2.zero;
             _destroyPoint = _destroyTransform != null ? _destroyTransform.position : Vector2.zero;
         }
+        public void SetBoxCollider(Vector2 offset, Vector2 size)
+        {
+            _grid.SetBoxCollider(offset, size);
+        }
 
         public void SetResolution(int width, int height)
         {

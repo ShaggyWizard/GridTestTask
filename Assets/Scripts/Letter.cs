@@ -35,7 +35,7 @@ namespace GridTest
 
         private void Update()
         {
-            if ((Vector2)transform.position != _targetPosition)
+            if ((Vector2)transform.position != _targetPosition || (Vector2)transform.localScale != _targetScale)
             {
                 var timeElapsed = _timeStamp - Time.time;
                 if (timeElapsed > 0)

@@ -30,7 +30,10 @@ namespace GridTest
         public void GenerateGrid()
         {
             if (_gridGenerator == null)
+            {
+                Debug.LogError("GridGenerator not found!");
                 return;
+            }
             int width;
             int height;
             if (int.TryParse(_widthField?.text, out width) && int.TryParse(_heightField?.text, out height))
@@ -46,13 +49,19 @@ namespace GridTest
         public void ShuffleGrid()
         {
             if (_gridGenerator == null)
+            {
+                Debug.LogError("GridGenerator not found!");
                 return;
+            }
             _gridGenerator.ShuffleGrid();
         }
         public void ClearGrid()
         {
             if (_gridGenerator == null)
+            {
+                Debug.LogError("GridGenerator not found!");
                 return;
+            }
             _gridGenerator.ClearGrid();
         }
 
@@ -66,6 +75,11 @@ namespace GridTest
 
         private void ChangeBoxColliderSize()
         {
+            if (_gridGenerator == null)
+            {
+                Debug.LogError("GridGenerator not found!");
+                return;
+            }
             if (!_camera.orthographic)
             {
                 Debug.LogError("Camera must be Orthographic.");
